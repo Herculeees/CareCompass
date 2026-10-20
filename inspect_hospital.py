@@ -9,8 +9,9 @@ CALIFORNIA_FILE = PROJECT_FOLDER / "health_facility_locations.csv"
 
 
 def normalize_address(address: str) -> str:
-    """Standardize basic formatting for comparison without changing source data."""
+    """Standardize address text for comparison, not location verification."""
     abbreviations = {
+        # Street types
         "AVENUE": "AVE",
         "STREET": "ST",
         "BOULEVARD": "BLVD",
@@ -19,6 +20,21 @@ def normalize_address(address: str) -> str:
         "LANE": "LN",
         "COURT": "CT",
         "PARKWAY": "PKWY",
+        "HIGHWAY": "HWY",
+        "EXPRESSWAY": "EXPY",
+        "PLACE": "PL",
+        "TERRACE": "TER",
+        "CIRCLE": "CIR",
+
+        # Directions
+        "NORTH": "N",
+        "SOUTH": "S",
+        "EAST": "E",
+        "WEST": "W",
+        "NORTHEAST": "NE",
+        "NORTHWEST": "NW",
+        "SOUTHEAST": "SE",
+        "SOUTHWEST": "SW",
     }
 
     words = address.upper().split()
@@ -26,8 +42,11 @@ def normalize_address(address: str) -> str:
 
     for word in words:
         cleaned_word = word.strip(".,")
+
         if cleaned_word:
-            normalized_word = abbreviations.get(cleaned_word, cleaned_word)
+            normalized_word = abbreviations.get(
+                cleaned_word, cleaned_word
+            )
             normalized_words.append(normalized_word)
 
     return " ".join(normalized_words)
