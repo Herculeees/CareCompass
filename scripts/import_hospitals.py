@@ -2,9 +2,14 @@ import csv
 import math
 from datetime import datetime
 from pprint import pprint
-
+from collections import Counter
 from inspect_hospital import CMS_FILE, CALIFORNIA_FILE
 from generate_issue_report import addresses_match, zips_match
+
+import argparse
+from getpass import getpass
+
+import psycopg
 
 
 def read_california_hospitals() -> list[dict[str, str]]:
@@ -172,10 +177,61 @@ def prepare_hospital(
     record["latitude"] = coordinates[0]
     record["longitude"] = coordinates[1]
     record["location_match_status"] = "single_candidate"
+    record["california_data_date"] = parse_source_date(candidate["DATA_DATE"])
 
     return record
 
+def insert_hospitals(records: list[dict], password: str) -> int:
+    query = """
+        INSERT INTO hospitals (
+            cms_facility_id, name, hospital_type, phone,
+            cms_address, cms_city, cms_state, cms_zip,
+            overall_rating, rating_footnote, emergency_services,
+            california_facid, california_address,
+            california_city, california_zip,
+            latitude, longitude, california_data_date,
+            location_match_status
+        )
+        VALUES (
+            %(cms_facility_id)s, %(name)s, %(hospital_type)s, %(phone)s,
+            %(cms_address)s, %(cms_city)s, %(cms_state)s, %(cms_zip)s,
+            %(overall_rating)s, %(rating_footnote)s, %(emergency_services)s,
+            %(california_facid)s, %(california_address)s,
+            %(california_city)s, %(california_zip)s,
+            %(latitude)s, %(longitude)s, %(california_data_date)s,
+            %(location_match_status)s
+        )
+        ON CONFLICT (cms_facility_id) DO NOTHING;
+    """
+
+    inserted = 0
+
+    with psycopg.connect(
+        host="127.0.0.1",
+        port=5432,
+        dbname="carecompass",
+        user="carecompass",
+        password=password,
+        connect_timeout=5,
+    ) as connection:
+        with connection.cursor() as cursor:
+            for record in records:
+                cursor.execute(query, record)
+                inserted += cursor.rowcount
+
+    return inserted
+
 def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Prepare hospital records; optionally insert them."
+    )
+    parser.add_argument(
+        "--write",
+        action="store_true",
+        help="Insert prepared records into PostgreSQL.",
+    )
+    args = parser.parse_args()
+
     hospitals = read_california_hospitals()
 
     print("California hospitals found:", len(hospitals))
@@ -253,6 +309,37 @@ def main() -> None:
 
     prepared = prepare_hospital(hospital, candidates)
     pprint(prepared)
+
+    prepared_records = []
+
+    for hospital in hospitals:
+        candidates = candidates_by_ccn.get(
+            hospital["Facility ID"].strip(), []
+        )
+        record = prepare_hospital(hospital, candidates)
+        prepared_records.append(record)
+
+    status_counts = Counter(
+        record["location_match_status"]
+        for record in prepared_records
+    )
+
+    print("\nPrepared-record summary:")
+    print("Total:", len(prepared_records))
+
+    for status, count in status_counts.items():
+        print(status, ":", count)
+
+    if not args.write:
+        print("\nDry run only. No database changes.")
+        return
+
+    password = getpass("Database password: ")
+    inserted = insert_hospitals(prepared_records, password)
+
+    print("\nImport committed.")
+    print("Inserted:", inserted)
+    print("Skipped existing IDs:", len(prepared_records) - inserted)
 
 
 if __name__ == "__main__":

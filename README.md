@@ -4,7 +4,7 @@ CareCompass is an in-progress California hospital discovery and comparison proje
 
 ## Current status
 
-Product scope and an initial visual concept are defined. The current Python exercise provides reusable lookup functions and displays a CMS hospital and all exact-CCN California location candidates. It distinguishes missing hospitals and zero, one, or multiple location candidates. PostgreSQL 17 runs locally through Docker Compose, the hospital table has been created, and Python-to-PostgreSQL connectivity has been verified with `SELECT 1;`. The database import, web application, API, and cloud deployment are not implemented yet.
+Product scope and an initial visual concept are defined. Python utilities inspect and match hospital source records, generate review reports, and prepare database-ready values. PostgreSQL 17 runs locally through Docker Compose, and the initial import has stored 377 California hospital records: 254 with single-candidate coordinates, 100 requiring location review, and 23 without an exact ID match. The web application, API, and cloud deployment are not implemented yet.
 
 ## Planned first release
 
@@ -69,7 +69,7 @@ To stop the services while keeping the database volume:
 docker compose down
 ```
 
-Do not add `--volumes` unless you intend to delete the stored database data. The hospital table has been created locally, but hospital records have not been imported. Generated diagrams and the project journal stay local and are excluded from Git.
+Do not add `--volumes` unless you intend to delete the stored database data. The hospital table has been created and the initial California hospital records imported locally. A fresh database still requires the schema and import steps below. Generated diagrams and the project journal stay local and are excluded from Git.
 
 ### Create the hospital table
 
@@ -185,7 +185,7 @@ On systems with Python available as `python3`:
 python3 scripts/inspect_hospital.py
 ```
 
-### Preview California records for the upcoming import
+### Preview and import California hospital records
 
 ```powershell
 .\.venv\Scripts\python.exe scripts/import_hospitals.py
@@ -197,7 +197,23 @@ California location candidates are read once and grouped by CCN. Address-and-ZIP
 
 `parse_coordinates()` rejects missing, nonnumeric, nonfinite, out-of-range values and the pair `(0, 0)`. These checks validate numeric plausibility, not the correct campus or a position within California. `prepare_hospital()` creates a dictionary containing converted CMS fields and, only for a single address-and-ZIP candidate with valid numeric coordinates, the selected California location. Unresolved location fields remain `None`, with `review_required` or `no_id_match` status. The script prints the first prepared hospital for inspection.
 
-`parse_source_date()` interprets source dates in month/day/year format, but connecting the parsed date to the prepared record is still pending: `california_data_date` remains `None`. Database inserts are not implemented, and `imported_at` is left to the database default. The dry-run command does not connect to PostgreSQL or change its data.
+`parse_source_date()` interprets source dates in month/day/year format and stores the selected location's extraction date in `california_data_date`. PostgreSQL supplies `imported_at`. Without `--write`, the script prints the prepared-record summary and exits without connecting to PostgreSQL or changing data.
+
+To insert the prepared records, explicitly enable writes:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/import_hospitals.py --write
+```
+
+Enter the database password when prompted. Values are passed as named Psycopg parameters. All inserts run within one transaction: successful completion commits, while an exception rolls back the transaction. Existing CMS IDs are skipped using `ON CONFLICT (cms_facility_id) DO NOTHING`; rerunning does not overwrite existing records or apply source updates. This is an initial insert workflow, not a synchronization mechanism.
+
+For an empty table, the current snapshot inserts 377 rows. After a successful complete import, a repeat run should insert 0 and skip 377. Verify the stored totals with read-only SQL:
+
+```powershell
+docker compose exec db psql -U carecompass -d carecompass -c "SELECT location_match_status, COUNT(*) FROM hospitals GROUP BY location_match_status;"
+```
+
+Verified local counts: 377 rows with distinct CMS IDs, 254 coordinate pairs, and 98 missing ratings. Location statuses are 254 `single_candidate`, 100 `review_required`, and 23 `no_id_match`. Coordinate presence does not independently establish correct campus selection. If authentication fails, the connection has not started an import; use `scripts/check_database.py` to check the password. Changing `.env` does not change an initialized database user's password.
 
 ## Matching and interpretation
 
