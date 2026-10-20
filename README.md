@@ -4,7 +4,7 @@ CareCompass is an in-progress California hospital discovery and comparison proje
 
 ## Current status
 
-Product scope and an initial visual concept are defined. The current Python exercise provides reusable lookup functions and displays a CMS hospital and all exact-CCN California location candidates. It distinguishes missing hospitals and zero, one, or multiple location candidates. The web application, database, API, and deployment are not implemented yet.
+Product scope and an initial visual concept are defined. The current Python exercise provides reusable lookup functions and displays a CMS hospital and all exact-CCN California location candidates. It distinguishes missing hospitals and zero, one, or multiple location candidates. PostgreSQL 17 runs locally through Docker Compose, and SQL execution inside the container has been verified. The hospital table, database import, Python database connection, web application, API, and cloud deployment are not implemented yet.
 
 ## Planned first release
 
@@ -19,6 +19,83 @@ Accounts, saved facilities, clinics, insurance, cost estimates, and AI ranking a
 ## Proposed technology stack
 
 Python/FastAPI, React/TypeScript, and PostgreSQL, with Docker, GitHub Actions, and an AWS deployment planned. Deployment details and the map provider remain to be decided.
+
+## Local PostgreSQL setup
+
+Install and start Docker Desktop with Linux containers. From the project directory, copy the environment template on Windows:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Do this only if `.env` does not already exist. Set your own local `POSTGRES_PASSWORD` in `.env`; never commit that file or share its contents. Then start PostgreSQL and verify SQL execution inside the container:
+
+```powershell
+docker compose up -d
+docker compose exec db psql -U carecompass -d carecompass -c "SELECT 1;"
+```
+
+PostgreSQL 17 is published at `127.0.0.1:5432` and stores data in the named `postgres_data` volume. The database and initial user are both named `carecompass`. This initial user has administrative privileges; it is for local setup, not a production application role. Initialization settings apply only to an empty data directory; changing `.env` does not change an existing user's password.
+
+To stop the services while keeping the database volume:
+
+```powershell
+docker compose down
+```
+
+Do not add `--volumes` unless you intend to delete the stored database data. The container currently has no hospital table or imported hospital records. Generated diagrams and the project journal stay local and are excluded from Git.
+
+## Proposed database schema
+
+The first release uses one main PostgreSQL table, `hospitals`, with one row per CMS hospital. This is a design proposal; the table has not been created yet. Original CMS location fields remain separate from the selected California location so the source of each value can be traced.
+
+### Hospital identity and original CMS location
+
+| Column | PostgreSQL type | Required? | Description |
+| --- | --- | --- | --- |
+| `cms_facility_id` | `TEXT` | Yes; primary key | Unique CMS hospital identifier. Preserve leading zeros. |
+| `name` | `TEXT` | Yes | Hospital name from CMS. |
+| `hospital_type` | `TEXT` | No | Hospital category reported by CMS. |
+| `phone` | `TEXT` | No | Contact phone number; preserve formatting. |
+| `cms_address` | `TEXT` | No | Original CMS street address. |
+| `cms_city` | `TEXT` | No | City from CMS. |
+| `cms_state` | `TEXT` | Yes | State abbreviation; `CA` for the initial import. |
+| `cms_zip` | `TEXT` | No | Original CMS ZIP code; preserve leading zeros. |
+
+### Quality and emergency services
+
+| Column | PostgreSQL type | Required? | Description |
+| --- | --- | --- | --- |
+| `overall_rating` | `SMALLINT` | No | CMS overall hospital rating, restricted to 1–5 when present. |
+| `rating_footnote` | `TEXT` | No | Source footnote explaining the rating or its absence; interpret codes using the CMS data dictionary. |
+| `emergency_services` | `BOOLEAN` | No | Reported emergency-services indicator: `TRUE`, `FALSE`, or `NULL` when unknown. Does not indicate live capacity or wait times. |
+
+### Selected California location and import metadata
+
+| Column | PostgreSQL type | Required? | Description |
+| --- | --- | --- | --- |
+| `california_facid` | `TEXT` | No | Identifier of the selected California facility record; a source ID, not a foreign key in this single-table design. |
+| `california_address` | `TEXT` | No | Original street address of the selected California record. |
+| `california_city` | `TEXT` | No | City of the selected California record. |
+| `california_zip` | `TEXT` | No | ZIP code of the selected California record. |
+| `latitude` | `DOUBLE PRECISION` | No | Latitude from the selected record; range −90 to 90. |
+| `longitude` | `DOUBLE PRECISION` | No | Longitude from the selected record; range −180 to 180. |
+| `location_match_status` | `TEXT` | Yes | Matching/review status, restricted to the values below. |
+| `california_data_date` | `DATE` | No | Selected California record's `DATA_DATE`; source extraction date, not import time. |
+| `imported_at` | `TIMESTAMPTZ` | Yes | Time the hospital record was imported into PostgreSQL. |
+
+**\* Pending manual review:** In the current source snapshots, **123 hospitals** have unresolved location matches: 54 have multiple address-and-ZIP candidates, 9 have matching addresses but different ZIP codes, 37 have matching IDs but different normalized addresses, and 23 have no exact ID match. These hospitals remain in the planned hospital table with unresolved selected-location fields and coordinates set to `NULL`. Candidate records remain in the [baseline issue report](reports/hospital-issues-baseline.csv) for review. The other 254 hospitals have single address-and-ZIP candidates, not independently verified locations.
+
+### Location match statuses
+
+| Value | Meaning |
+| --- | --- |
+| `single_candidate` | Exactly one same-ID candidate matches the normalized street address and five-digit ZIP. Coordinates still require basic validation before use. |
+| `review_required` | Matching IDs have multiple address-and-ZIP candidates or conflicting address/ZIP information. |
+| `no_id_match` | No exact California CCN match was found for the CMS facility ID. |
+| `review_approved` | A reviewer approved a particular California facility record. The verification evidence stays in the review record. |
+
+Missing values use SQL `NULL`, not zero or the text `N/A`. Latitude and longitude must either both be present or both be `NULL`. Coordinate range checks do not independently verify the correct campus. Hospital quality ratings belong to the CMS provider record and should not be presented as independently measured ratings for every related campus.
 
 ## Run the current exercise
 

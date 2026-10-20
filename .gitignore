@@ -23,6 +23,9 @@ dist/
 build/
 coverage/
 
+# Local diagrams and project journal
+/docs/
+
 # Local configuration and credentials
 .env
 .env.*
