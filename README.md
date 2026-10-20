@@ -61,6 +61,29 @@ Initial inspection of the downloaded snapshots found 377 California CMS hospital
 
 Missing ratings are not zero. Distances will be labeled as straight-line estimates. Reported emergency services do not establish current opening status, capacity, or wait times. Overall hospital ratings are not specialty-specific ratings.
 
+## Address review milestone
+
+Address normalization now handles common street types and direction abbreviations. For the current source snapshots, 254 of 377 California CMS hospitals have exactly one same-ID candidate matching the normalized street address and five-digit ZIP. This is a proposed location match, not independently verified coordinate accuracy.
+
+The remaining **123 hospitals require later review**:
+
+| Issue | Hospitals |
+| --- | ---: |
+| Multiple address-and-ZIP candidates | 54 |
+| Address matches but ZIP differs | 9 |
+| Same ID but normalized address differs | 37 |
+| No exact ID match | 23 |
+
+Run the issue-report generator with the original CSV files available locally:
+
+```powershell
+py generate_issue_report.py
+```
+
+Each run creates a timestamped CSV in `reports/`, excluding the 254 single matches. The baseline review snapshot is [reports/hospital-issues-baseline.csv](reports/hospital-issues-baseline.csv). It contains 230 candidate-level rows for 123 hospitals; all decisions are pending. No candidate is automatically approved, and original source files are unchanged. Timestamped reports are excluded from Git to avoid committing duplicate generated outputs.
+
+Detailed exception review is deferred while work proceeds to database design. The planned application will retain unresolved hospitals, displaying unavailable distance and omitting map markers until their locations are resolved.
+
 ## Development approach
 
 Development proceeds in small, explained steps: data validation, database and API design, backend implementation, frontend implementation, testing, and deployment. The developer leads implementation and reviews major architectural decisions before adopting them.

@@ -3,6 +3,9 @@
 /health_facility_locations.csv
 /data/raw/
 
+# Reproducible timestamped audits; keep the named baseline review snapshot
+/reports/hospital-issues-20*.csv
+
 # Python environments and generated files
 .venv/
 venv/
