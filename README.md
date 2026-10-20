@@ -4,7 +4,7 @@ CareCompass is an in-progress California hospital discovery and comparison proje
 
 ## Current status
 
-Product scope and an initial visual concept are defined. The current Python exercise reads two local CSV datasets and displays the CMS record and California location candidates for St Rose Hospital (`050002`). The web application, database, API, and deployment are not implemented yet.
+Product scope and an initial visual concept are defined. The current Python exercise provides reusable lookup functions and displays a CMS hospital and all exact-CCN California location candidates. It distinguishes missing hospitals and zero, one, or multiple location candidates. The web application, database, API, and deployment are not implemented yet.
 
 ## Planned first release
 
@@ -38,6 +38,14 @@ From the project directory on Windows:
 ```powershell
 py inspect_hospital.py
 ```
+
+An optional hospital ID can be supplied without editing the script:
+
+```powershell
+py inspect_hospital.py 050007
+```
+
+Examples in the current local snapshots: `050002` has one candidate, `050007` has multiple candidates, and `050551` has no exact CCN candidate. `NOT-A-REAL-ID` demonstrates the hospital-not-found message. Candidates are not verified coordinate matches, even when only one is returned.
 
 On systems with Python available as `python3`:
 
