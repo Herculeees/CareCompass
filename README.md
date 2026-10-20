@@ -193,7 +193,11 @@ python3 scripts/inspect_hospital.py
 
 The current script reads the CMS file, filters to California, and previews hospital IDs, names, parsed ratings, and emergency-services flags. It validates these conversions across all 377 California records: 98 ratings are unavailable, 284 hospitals report emergency services, and 93 report no emergency services. Missing ratings become Python `None`, while Yes/No values become Boolean values; unexpected inputs raise errors.
 
-California location candidates are read once and grouped by CCN. Address-and-ZIP matching reuses the issue-report rules, preserving multiple candidates for review. The script demonstrates two same-ID candidates for `050007` and one address-and-ZIP candidate for the first CMS record, `050002`. These checks do not independently validate coordinates. Coordinate validation, full database-ready record construction, and inserts are not implemented yet; this command does not connect to PostgreSQL or change its data.
+California location candidates are read once and grouped by CCN. Address-and-ZIP matching reuses the issue-report rules, preserving multiple candidates for review. The script demonstrates two same-ID candidates for `050007` and one address-and-ZIP candidate for the first CMS record, `050002`.
+
+`parse_coordinates()` rejects missing, nonnumeric, nonfinite, out-of-range values and the pair `(0, 0)`. These checks validate numeric plausibility, not the correct campus or a position within California. `prepare_hospital()` creates a dictionary containing converted CMS fields and, only for a single address-and-ZIP candidate with valid numeric coordinates, the selected California location. Unresolved location fields remain `None`, with `review_required` or `no_id_match` status. The script prints the first prepared hospital for inspection.
+
+`parse_source_date()` interprets source dates in month/day/year format, but connecting the parsed date to the prepared record is still pending: `california_data_date` remains `None`. Database inserts are not implemented, and `imported_at` is left to the database default. The dry-run command does not connect to PostgreSQL or change its data.
 
 ## Matching and interpretation
 
