@@ -191,7 +191,9 @@ python3 scripts/inspect_hospital.py
 .\.venv\Scripts\python.exe scripts/import_hospitals.py
 ```
 
-The current script reads the CMS file, filters to California, and prints the total and the first three hospital IDs, names, and cities. The current snapshot contains 377 California records. Database-value conversions and inserts are not implemented yet; this command does not connect to PostgreSQL or change its data.
+The current script reads the CMS file, filters to California, and previews hospital IDs, names, parsed ratings, and emergency-services flags. It validates these conversions across all 377 California records: 98 ratings are unavailable, 284 hospitals report emergency services, and 93 report no emergency services. Missing ratings become Python `None`, while Yes/No values become Boolean values; unexpected inputs raise errors.
+
+California location candidates are read once and grouped by CCN. Address-and-ZIP matching reuses the issue-report rules, preserving multiple candidates for review. The script demonstrates two same-ID candidates for `050007` and one address-and-ZIP candidate for the first CMS record, `050002`. These checks do not independently validate coordinates. Coordinate validation, full database-ready record construction, and inserts are not implemented yet; this command does not connect to PostgreSQL or change its data.
 
 ## Matching and interpretation
 
