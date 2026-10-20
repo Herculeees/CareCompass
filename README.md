@@ -4,7 +4,7 @@ CareCompass is an in-progress California hospital discovery and comparison proje
 
 ## Current status
 
-Product scope and an initial visual concept are defined. The current Python exercise provides reusable lookup functions and displays a CMS hospital and all exact-CCN California location candidates. It distinguishes missing hospitals and zero, one, or multiple location candidates. PostgreSQL 17 runs locally through Docker Compose, and SQL execution inside the container has been verified. The hospital table, database import, Python database connection, web application, API, and cloud deployment are not implemented yet.
+Product scope and an initial visual concept are defined. The current Python exercise provides reusable lookup functions and displays a CMS hospital and all exact-CCN California location candidates. It distinguishes missing hospitals and zero, one, or multiple location candidates. PostgreSQL 17 runs locally through Docker Compose, the hospital table has been created, and Python-to-PostgreSQL connectivity has been verified with `SELECT 1;`. The database import, web application, API, and cloud deployment are not implemented yet.
 
 ## Planned first release
 
@@ -43,11 +43,40 @@ To stop the services while keeping the database volume:
 docker compose down
 ```
 
-Do not add `--volumes` unless you intend to delete the stored database data. The container currently has no hospital table or imported hospital records. Generated diagrams and the project journal stay local and are excluded from Git.
+Do not add `--volumes` unless you intend to delete the stored database data. The hospital table has been created locally, but hospital records have not been imported. Generated diagrams and the project journal stay local and are excluded from Git.
 
-## Proposed database schema
+### Create the hospital table
 
-The first release uses one main PostgreSQL table, `hospitals`, with one row per CMS hospital. This is a design proposal; the table has not been created yet. Original CMS location fields remain separate from the selected California location so the source of each value can be traced.
+For a new database, apply the schema once:
+
+```powershell
+docker compose cp database/schema.sql db:/tmp/schema.sql
+docker compose exec db psql -U carecompass -d carecompass -v ON_ERROR_STOP=1 -f /tmp/schema.sql
+```
+
+Inspect the resulting table:
+
+```powershell
+docker compose exec db psql -U carecompass -d carecompass -P pager=off -c "\d hospitals"
+```
+
+If the table already exists, do not rerun the creation script or delete the table. This script is the initial schema, not a migration system.
+
+### Verify Python database connectivity
+
+Create the project environment if `.venv` does not already exist, then install its dependencies:
+
+```powershell
+py -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe check_database.py
+```
+
+The check prompts for the password configured when PostgreSQL was initialized, without displaying it or storing it in code. It connects to `127.0.0.1:5432` and executes `SELECT 1;`. Expected output: `Database returned: 1`. It does not automatically read `.env`, modify the schema, or insert hospital records. Keep Docker Desktop and the database container running during the check.
+
+## Database schema
+
+The first release uses one main PostgreSQL table, `hospitals`, with one row per CMS hospital. Its definition is in [database/schema.sql](database/schema.sql). Original CMS location fields remain separate from the selected California location so the source of each value can be traced.
 
 ### Hospital identity and original CMS location
 
