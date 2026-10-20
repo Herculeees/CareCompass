@@ -20,6 +20,32 @@ Accounts, saved facilities, clinics, insurance, cost estimates, and AI ranking a
 
 Python/FastAPI, React/TypeScript, and PostgreSQL, with Docker, GitHub Actions, and an AWS deployment planned. Deployment details and the map provider remain to be decided.
 
+## Project layout
+
+```text
+CareCompass/
+├── scripts/                 # Python utilities and the upcoming import
+│   ├── inspect_hospital.py
+│   ├── generate_issue_report.py
+│   ├── check_database.py
+│   └── import_hospitals.py   # Reads California CMS records; no database writes yet
+├── database/
+│   └── schema.sql           # Initial PostgreSQL table definition
+├── data/
+│   └── raw/                 # Original downloaded CSVs; ignored by Git
+├── reports/                 # Baseline review CSV and generated issue reports
+├── docs/                    # Local-only journal and diagrams; ignored by Git
+├── .venv/                   # Local Python environment; ignored by Git
+├── .env                     # Local password; ignored by Git
+├── .env.example             # Shareable environment template
+├── .gitignore
+├── compose.yaml             # Local PostgreSQL container configuration
+├── requirements.txt
+└── README.md
+```
+
+Run the commands below from the project root, `D:\CareCompass`. The inspection and issue-report scripts locate `data/raw/` relative to the project, rather than the terminal's current directory. Moving source files does not alter the Docker database or its volume.
+
 ## Local PostgreSQL setup
 
 Install and start Docker Desktop with Linux containers. From the project directory, copy the environment template on Windows:
@@ -69,7 +95,7 @@ Create the project environment if `.venv` does not already exist, then install i
 ```powershell
 py -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
-.\.venv\Scripts\python.exe check_database.py
+.\.venv\Scripts\python.exe scripts/check_database.py
 ```
 
 The check prompts for the password configured when PostgreSQL was initialized, without displaying it or storing it in code. It connects to `127.0.0.1:5432` and executes `SELECT 1;`. Expected output: `Database returned: 1`. It does not automatically read `.env`, modify the schema, or insert hospital records. Keep Docker Desktop and the database container running during the check.
@@ -130,7 +156,7 @@ Missing values use SQL `NULL`, not zero or the text `N/A`. Latitude and longitud
 
 Use Python 3.11 or later. No third-party Python packages are required for this exercise.
 
-Download the following source files and place them beside `inspect_hospital.py`:
+Download the following source files and place them in `data/raw/`:
 
 | Source | Local filename | Purpose |
 | --- | --- | --- |
@@ -142,13 +168,13 @@ The downloaded CSV files are intentionally excluded from Git. Preserve leading z
 From the project directory on Windows:
 
 ```powershell
-py inspect_hospital.py
+py scripts/inspect_hospital.py
 ```
 
 An optional hospital ID can be supplied without editing the script:
 
 ```powershell
-py inspect_hospital.py 050007
+py scripts/inspect_hospital.py 050007
 ```
 
 Examples in the current local snapshots: `050002` has one candidate, `050007` has multiple candidates, and `050551` has no exact CCN candidate. `NOT-A-REAL-ID` demonstrates the hospital-not-found message. Candidates are not verified coordinate matches, even when only one is returned.
@@ -156,8 +182,16 @@ Examples in the current local snapshots: `050002` has one candidate, `050007` ha
 On systems with Python available as `python3`:
 
 ```sh
-python3 inspect_hospital.py
+python3 scripts/inspect_hospital.py
 ```
+
+### Preview California records for the upcoming import
+
+```powershell
+.\.venv\Scripts\python.exe scripts/import_hospitals.py
+```
+
+The current script reads the CMS file, filters to California, and prints the total and the first three hospital IDs, names, and cities. The current snapshot contains 377 California records. Database-value conversions and inserts are not implemented yet; this command does not connect to PostgreSQL or change its data.
 
 ## Matching and interpretation
 
@@ -183,7 +217,7 @@ The remaining **123 hospitals require later review**:
 Run the issue-report generator with the original CSV files available locally:
 
 ```powershell
-py generate_issue_report.py
+py scripts/generate_issue_report.py
 ```
 
 Each run creates a timestamped CSV in `reports/`, excluding the 254 single matches. The baseline review snapshot is [reports/hospital-issues-baseline.csv](reports/hospital-issues-baseline.csv). It contains 230 candidate-level rows for 123 hospitals; all decisions are pending. No candidate is automatically approved, and original source files are unchanged. Timestamped reports are excluded from Git to avoid committing duplicate generated outputs.

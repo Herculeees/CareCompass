@@ -3,9 +3,10 @@ import csv
 from pathlib import Path
 
 
-PROJECT_FOLDER = Path(__file__).resolve().parent
-CMS_FILE = PROJECT_FOLDER / "Hospital_General_Information.csv"
-CALIFORNIA_FILE = PROJECT_FOLDER / "health_facility_locations.csv"
+PROJECT_FOLDER = Path(__file__).resolve().parent.parent
+RAW_DATA_FOLDER = PROJECT_FOLDER / "data" / "raw"
+CMS_FILE = RAW_DATA_FOLDER / "Hospital_General_Information.csv"
+CALIFORNIA_FILE = RAW_DATA_FOLDER / "health_facility_locations.csv"
 
 
 def normalize_address(address: str) -> str:
