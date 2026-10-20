@@ -8,6 +8,31 @@ CMS_FILE = PROJECT_FOLDER / "Hospital_General_Information.csv"
 CALIFORNIA_FILE = PROJECT_FOLDER / "health_facility_locations.csv"
 
 
+def normalize_address(address: str) -> str:
+    """Standardize basic formatting for comparison without changing source data."""
+    abbreviations = {
+        "AVENUE": "AVE",
+        "STREET": "ST",
+        "BOULEVARD": "BLVD",
+        "DRIVE": "DR",
+        "ROAD": "RD",
+        "LANE": "LN",
+        "COURT": "CT",
+        "PARKWAY": "PKWY",
+    }
+
+    words = address.upper().split()
+    normalized_words = []
+
+    for word in words:
+        cleaned_word = word.strip(".,")
+        if cleaned_word:
+            normalized_word = abbreviations.get(cleaned_word, cleaned_word)
+            normalized_words.append(normalized_word)
+
+    return " ".join(normalized_words)
+
+
 def find_cms_hospital(facility_id: str) -> dict[str, str] | None:
     """Return the CMS row for an ID, or None when it is not found."""
     with CMS_FILE.open(encoding="utf-8-sig", newline="") as file:
