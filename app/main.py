@@ -21,15 +21,43 @@ def hospital_count():
 
 
 @app.get("/hospitals")
-def get_hospitals():
+def get_hospitals(
+    city: str | None = None,
+    emergency_services: bool | None = None,
+    zip_code: str | None = None,
+):
+    query = """
+        SELECT
+            cms_facility_id,
+            name,
+            cms_city,
+            overall_rating,
+            emergency_services
+        FROM hospitals
+    """
+    conditions = []
+    params = []
+
+    if zip_code is not None:
+        conditions.append("cms_zip = %s")
+        params.append(zip_code.strip())
+
+    if city is not None:
+        conditions.append("LOWER(cms_city) = LOWER(%s)")
+        params.append(city.strip())
+
+    if emergency_services is not None:
+        conditions.append("emergency_services = %s")
+        params.append(emergency_services)
+
+    if conditions:
+        query += " WHERE " + " AND ".join(conditions)
+
+    query += " ORDER BY cms_facility_id LIMIT 5;"
+
     with get_connection() as connection:
         with connection.cursor(row_factory=dict_row) as cursor:
-            cursor.execute("""
-                SELECT cms_facility_id, name, cms_city, overall_rating, emergency_services
-                FROM hospitals
-                ORDER BY cms_facility_id
-                LIMIT 5;
-            """)
+            cursor.execute(query, params)
             hospitals = cursor.fetchall()
 
     return {"hospitals": hospitals}
