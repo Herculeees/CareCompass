@@ -14,7 +14,7 @@ def health_check():
 def hospital_count():
     with get_connection() as connection:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT COUNT(*) FROM hospitals;")
+            cursor.execute("SELECT COUNT(*) FROM hospital_search;")
             result = cursor.fetchone()
 
     return {"total": result[0]}
@@ -28,22 +28,31 @@ def get_hospitals(
 ):
     query = """
         SELECT
+            location_id,
             cms_facility_id,
+            california_facid,
             name,
-            cms_city,
+            address,
+            city,
+            state,
+            zip_code,
+            latitude,
+            longitude,
+            hospital_type,
             overall_rating,
-            emergency_services
-        FROM hospitals
+            emergency_services,
+            record_source
+        FROM hospital_search
     """
     conditions = []
     params = []
 
     if zip_code is not None:
-        conditions.append("cms_zip = %s")
+        conditions.append("zip_code = %s")
         params.append(zip_code.strip())
 
     if city is not None:
-        conditions.append("LOWER(cms_city) = LOWER(%s)")
+        conditions.append("LOWER(city) = LOWER(%s)")
         params.append(city.strip())
 
     if emergency_services is not None:
@@ -53,7 +62,7 @@ def get_hospitals(
     if conditions:
         query += " WHERE " + " AND ".join(conditions)
 
-    query += " ORDER BY cms_facility_id LIMIT 5;"
+    query += " ORDER BY location_id LIMIT 5;"
 
     with get_connection() as connection:
         with connection.cursor(row_factory=dict_row) as cursor:
