@@ -11,14 +11,43 @@ function App() {
   const [hospitals, setHospitals] = useState<Hospital[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [name, setName] = useState('')
+  const [city, setCity] = useState('')
+  const [zipCode, setZipCode] = useState('')
+  const [emergencyOnly, setEmergencyOnly] = useState(false)
+  const [searchFilters, setSearchFilters] = useState({
+    name: '',
+    city: '',
+    zipCode: '',
+    emergencyOnly: false,
+  })
 
   useEffect(() => {
     const controller = new AbortController()
 
+    const params = new URLSearchParams()
+    params.set('limit', '20')
+
+    if (searchFilters.name.trim()) {
+      params.set('name', searchFilters.name.trim())
+    }
+
+    if (searchFilters.city.trim()) {
+      params.set('city', searchFilters.city.trim())
+    }
+
+    if (searchFilters.zipCode.trim()) {
+      params.set('zip_code', searchFilters.zipCode.trim())
+    }
+
+    if (searchFilters.emergencyOnly) {
+      params.set('emergency_services', 'true')
+    }
+
     async function loadHospitals() {
       try {
         const response = await fetch(
-          'http://127.0.0.1:8000/hospitals?limit=5',
+          `http://127.0.0.1:8000/hospitals?${params.toString()}`,
           { signal: controller.signal },
         )
 
@@ -43,12 +72,65 @@ function App() {
     void loadHospitals()
 
     return () => controller.abort()
-  }, [])
+  }, [searchFilters])
 
   return (
     <main>
       <h1>CareCompass</h1>
       <p>Find and compare hospitals in California.</p>
+
+      <form
+        onSubmit={(event) => {
+          event.preventDefault()
+          setLoading(true)
+          setError(null)
+          setSearchFilters({ name, city, zipCode, emergencyOnly })
+        }}
+      >
+      <div>
+        <label htmlFor="hospital-name">Hospital name</label>
+        <input
+          id="hospital-name"
+          type="text"
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+        />
+      </div>
+
+      <div>
+        <label htmlFor="city">City</label>
+        <input
+          id="city"
+          type="text"
+          value={city}
+          onChange={(event) => setCity(event.target.value)}
+        />
+      </div>
+
+      <div>
+        <label htmlFor="zip-code">ZIP code</label>
+        <input
+          id="zip-code"
+          type="text"
+          inputMode="numeric"
+          value={zipCode}
+          onChange={(event) => setZipCode(event.target.value)}
+        />
+      </div>
+
+      <div>
+        <label>
+          <input
+            type="checkbox"
+            checked={emergencyOnly}
+            onChange={(event) => setEmergencyOnly(event.target.checked)}
+          />
+          Emergency services only
+        </label>
+      </div>
+
+      <button type="submit">Search</button>
+    </form>
 
       {loading && <p>Loading hospitals…</p>}
 
