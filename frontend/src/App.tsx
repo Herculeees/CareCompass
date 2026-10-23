@@ -5,6 +5,8 @@ type Hospital = {
   name: string
   address: string | null
   city: string | null
+  overall_rating: number | null
+  emergency_services: boolean | null
 }
 
 function App() {
@@ -148,6 +150,12 @@ function App() {
               <p>
                 {hospital.address ?? 'Address unavailable'}
                 {hospital.city ? `, ${hospital.city}` : ''}
+              </p>
+              <p>
+                CMS overall rating: {hospital.overall_rating === null ? 'Not available' : `${hospital.overall_rating} / 5`}
+              </p>
+              <p>
+                Emergency services: {hospital.emergency_services === null ? 'Unknown': hospital.emergency_services ? 'Yes' : 'No'}
               </p>
             </li>
           ))}
