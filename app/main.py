@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, Query
 from psycopg.rows import dict_row
 from app.database import get_connection
+from app.performance import attach_performance
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="CareCompass API")
@@ -118,5 +119,6 @@ def get_hospitals(
         with connection.cursor(row_factory=dict_row) as cursor:
             cursor.execute(query, params)
             hospitals = cursor.fetchall()
+            attach_performance(cursor, hospitals)
 
     return {"hospitals": hospitals}

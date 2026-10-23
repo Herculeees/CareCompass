@@ -1,18 +1,13 @@
 import { useEffect, useState } from 'react'
-
-type Hospital = {
-  location_id: string
-  name: string
-  address: string | null
-  city: string | null
-  overall_rating: number | null
-  emergency_services: boolean | null
-}
+import type { Hospital } from './types'
+import HospitalPerformance from './components/HospitalPerformance'
+import HospitalComparison from './components/HospitalComparison'
 
 function App() {
   const [hospitals, setHospitals] = useState<Hospital[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [comparison, setComparison] = useState<Hospital[]>([])
   const [name, setName] = useState('')
   const [city, setCity] = useState('')
   const [zipCode, setZipCode] = useState('')
@@ -59,7 +54,9 @@ function App() {
 
         const data: { hospitals: Hospital[] } = await response.json()
 
-        setHospitals(data.hospitals)
+        if (!controller.signal.aborted) {
+          setHospitals(data.hospitals)
+        }
       } catch {
         if (!controller.signal.aborted) {
           setError('Unable to load hospitals. Please try again later.')
@@ -80,6 +77,10 @@ function App() {
     <main>
       <h1>CareCompass</h1>
       <p>Find and compare hospitals in California.</p>
+      <HospitalComparison
+        hospitals={comparison}
+        onRemove={(locationId) => setComparison((previous) => previous.filter((item) => item.location_id !== locationId))}
+      />
 
       <form
         onSubmit={(event) => {
@@ -157,6 +158,26 @@ function App() {
               <p>
                 Emergency services: {hospital.emergency_services === null ? 'Unknown': hospital.emergency_services ? 'Yes' : 'No'}
               </p>
+              <p>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([hospital.name, hospital.address, hospital.city, 'CA'].filter(Boolean).join(', '))}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  View hospital on Google Maps
+                </a>
+              </p>
+              <HospitalPerformance hospital={hospital} />
+              <button
+                type="button"
+                disabled={comparison.length >= 3 || comparison.some((item) => item.location_id === hospital.location_id)}
+                onClick={() => setComparison((previous) => (
+                  previous.length >= 3 || previous.some((item) => item.location_id === hospital.location_id)
+                    ? previous : [...previous, hospital]
+                ))}
+              >
+                {comparison.some((item) => item.location_id === hospital.location_id) ? 'Added to comparison' : 'Add to comparison'}
+              </button>
             </li>
           ))}
         </ul>
