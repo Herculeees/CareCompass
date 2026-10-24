@@ -3,6 +3,11 @@ import type { Hospital } from './types'
 import HospitalPerformance from './components/HospitalPerformance'
 import HospitalComparison from './components/HospitalComparison'
 
+type UserLocation = {
+  latitude: number
+  longitude: number
+}
+
 function App() {
   const [hospitals, setHospitals] = useState<Hospital[]>([])
   const [loading, setLoading] = useState(true)
@@ -12,12 +17,42 @@ function App() {
   const [city, setCity] = useState('')
   const [zipCode, setZipCode] = useState('')
   const [emergencyOnly, setEmergencyOnly] = useState(false)
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null)
+  const [locating, setLocating] = useState(false)
+  const [locationError, setLocationError] = useState<string | null>(null)
   const [searchFilters, setSearchFilters] = useState({
     name: '',
     city: '',
     zipCode: '',
     emergencyOnly: false,
+    location: null as UserLocation | null,
   })
+
+function handleUseLocation() {
+  if (!navigator.geolocation) {
+    setLocationError('Your browser does not support location access.')
+    return
+  }
+
+  setLocating(true)
+  setLocationError(null)
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      setUserLocation({latitude: position.coords.latitude, longitude: position.coords.longitude})
+      setLocating(false)
+    },
+    (error) => {
+      setLocationError(
+        error.code === error.PERMISSION_DENIED
+          ? 'Location access was denied. You can still search by city or ZIP.'
+          : 'Unable to get your location. Please try again.',
+      )
+      setLocating(false)
+    },
+    { timeout: 10000 },
+  )
+}
 
   useEffect(() => {
     const controller = new AbortController()
@@ -39,6 +74,11 @@ function App() {
 
     if (searchFilters.emergencyOnly) {
       params.set('emergency_services', 'true')
+    }
+
+    if (searchFilters.location) {
+      params.set('latitude', searchFilters.location.latitude.toString(),)
+      params.set('longitude',searchFilters.location.longitude.toString(),)
     }
 
     async function loadHospitals() {
@@ -87,7 +127,7 @@ function App() {
           event.preventDefault()
           setLoading(true)
           setError(null)
-          setSearchFilters({ name, city, zipCode, emergencyOnly })
+          setSearchFilters({ name, city, zipCode, emergencyOnly, location: userLocation})
         }}
       >
       <div>
@@ -135,6 +175,21 @@ function App() {
       <button type="submit">Search</button>
     </form>
 
+    <div>
+    <button type="button" onClick={handleUseLocation} disabled={locating}>
+      {locating ? 'Getting your location...' : 'Use my location'}
+    </button>
+
+    {locationError && <p role="alert">{locationError}</p>}
+
+    {userLocation && (
+      <p>
+        Your location: {userLocation.latitude.toFixed(4)},{' '}
+        {userLocation.longitude.toFixed(4)}
+      </p>
+    )}
+    </div>
+
       {loading && <p>Loading hospitals…</p>}
 
       {error && <p role="alert">{error}</p>}
@@ -148,6 +203,12 @@ function App() {
           {hospitals.map((hospital) => (
             <li key={hospital.location_id}>
               <h2>{hospital.name}</h2>
+              {hospital.distance_miles !== null && (
+                <p>
+                  {hospital.distance_miles.toFixed(1)} miles away
+                  {' '}(straight-line distance)
+                </p>
+              )}
               <p>
                 {hospital.address ?? 'Address unavailable'}
                 {hospital.city ? `, ${hospital.city}` : ''}

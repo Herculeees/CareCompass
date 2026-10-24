@@ -16,6 +16,7 @@ export type Hospital = {
   emergency_services: boolean | null
   latitude: number | null
   longitude: number | null
+  distance_miles: number | null
   hcai_performance: {
     year: number
     source: string
