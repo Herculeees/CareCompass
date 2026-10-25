@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { Hospital } from './types'
 import HospitalPerformance from './components/HospitalPerformance'
 import HospitalComparison from './components/HospitalComparison'
@@ -14,6 +14,12 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [comparison, setComparison] = useState<Hospital[]>([])
+  const handleAddToComparison = useCallback((hospital: Hospital) => {
+    setComparison((previous) => (
+      previous.length >= 3 || previous.some((item) => item.location_id === hospital.location_id)
+        ? previous : [...previous, hospital]
+    ))
+  }, [])
   const [name, setName] = useState('')
   const [city, setCity] = useState('')
   const [zipCode, setZipCode] = useState('')
@@ -205,7 +211,11 @@ function handleUseLocation() {
 
       {!loading && !error && (
         <>
-          <HospitalMap hospitals={hospitals} />
+          <HospitalMap
+            hospitals={hospitals}
+            comparison={comparison}
+            onAddToComparison={handleAddToComparison}
+          />
           <ul>
           {hospitals.map((hospital) => (
             <li key={hospital.location_id}>
@@ -239,10 +249,7 @@ function handleUseLocation() {
               <button
                 type="button"
                 disabled={comparison.length >= 3 || comparison.some((item) => item.location_id === hospital.location_id)}
-                onClick={() => setComparison((previous) => (
-                  previous.length >= 3 || previous.some((item) => item.location_id === hospital.location_id)
-                    ? previous : [...previous, hospital]
-                ))}
+                onClick={() => handleAddToComparison(hospital)}
               >
                 {comparison.some((item) => item.location_id === hospital.location_id) ? 'Added to comparison' : 'Add to comparison'}
               </button>
