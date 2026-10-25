@@ -22,7 +22,8 @@ MATCH_NOTES = {
 
 def performance_response(match=None, rows=()):
     status = match["match_status"] if match else "not_imported"
-    by_code = {row["measure_code"]: row for row in rows} if status == "matched" else {}
+    by_code = {row["measure_code"]: row
+               for row in rows} if status == "matched" else {}
     measures = []
     for definition in MEASURES:
         row = by_code.get(definition["code"])
