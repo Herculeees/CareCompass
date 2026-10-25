@@ -2,3 +2,4 @@ psycopg[binary]==3.3.6
 fastapi==0.156.4
 uvicorn==0.54.0
 python-dotenv==1.2.4
+pgeocode==0.5.0

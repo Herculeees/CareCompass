@@ -70,14 +70,14 @@ function handleUseLocation() {
     }
 
     if (searchFilters.zipCode.trim()) {
-      params.set('zip_code', searchFilters.zipCode.trim())
+      params.set('near_zip', searchFilters.zipCode.trim())
     }
 
     if (searchFilters.emergencyOnly) {
       params.set('emergency_services', 'true')
     }
 
-    if (searchFilters.location) {
+    if (searchFilters.location && !searchFilters.zipCode.trim()) {
       params.set('latitude', searchFilters.location.latitude.toString(),)
       params.set('longitude',searchFilters.location.longitude.toString(),)
     }
@@ -152,7 +152,7 @@ function handleUseLocation() {
       </div>
 
       <div>
-        <label htmlFor="zip-code">ZIP code</label>
+        <label htmlFor="zip-code">Search near ZIP code</label>
         <input
           id="zip-code"
           type="text"

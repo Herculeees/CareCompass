@@ -3,6 +3,7 @@ from psycopg.rows import dict_row
 from app.database import get_connection
 from app.performance import attach_performance
 from fastapi.middleware.cors import CORSMiddleware
+from app.geocoding import coordinates_for_zip
 
 app = FastAPI(title="CareCompass API")
 app.add_middleware(
@@ -40,12 +41,28 @@ def get_hospitals(
     offset: int = Query(default=0, ge=0),
     latitude: float | None = Query(default=None, ge=-90, le=90),
     longitude: float | None = Query(default=None, ge=-180, le=180),
+    near_zip: str | None = None,
 ):
     if (latitude is None) != (longitude is None):
         raise HTTPException(
             status_code=422,
             detail="Provide both latitude and longitude together.",
         )
+
+    if near_zip is not None:
+        if latitude is not None or zip_code is not None:
+            raise HTTPException(
+                status_code=422,
+                detail="Use near_zip without coordinates or an exact ZIP filter.",
+            )
+
+        try:
+            latitude, longitude = coordinates_for_zip(near_zip)
+        except ValueError as error:
+            raise HTTPException(
+                status_code=422,
+                detail=str(error),
+            ) from error
 
     conditions = []
     params = []
