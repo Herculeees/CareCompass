@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { Hospital } from './types'
 import HospitalPerformance from './components/HospitalPerformance'
 import HospitalComparison from './components/HospitalComparison'
+import HospitalMap from './components/HospitalMap'
 
 type UserLocation = {
   latitude: number
@@ -199,7 +200,9 @@ function handleUseLocation() {
       )}
 
       {!loading && !error && (
-        <ul>
+        <>
+          <HospitalMap />
+          <ul>
           {hospitals.map((hospital) => (
             <li key={hospital.location_id}>
               <h2>{hospital.name}</h2>
@@ -241,7 +244,8 @@ function handleUseLocation() {
               </button>
             </li>
           ))}
-        </ul>
+            </ul>
+        </>
       )}
     </main>
   )
