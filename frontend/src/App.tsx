@@ -65,8 +65,8 @@ function handleUseLocation() {
       params.set('name', searchFilters.name.trim())
     }
 
-    if (searchFilters.city.trim()) {
-      params.set('city', searchFilters.city.trim())
+    if (searchFilters.city.trim() && !searchFilters.zipCode.trim()) {
+      params.set('near_city', searchFilters.city.trim())
     }
 
     if (searchFilters.zipCode.trim()) {
@@ -77,7 +77,11 @@ function handleUseLocation() {
       params.set('emergency_services', 'true')
     }
 
-    if (searchFilters.location && !searchFilters.zipCode.trim()) {
+    if (
+      searchFilters.location &&
+      !searchFilters.zipCode.trim() &&
+      !searchFilters.city.trim()
+    ) {
       params.set('latitude', searchFilters.location.latitude.toString(),)
       params.set('longitude',searchFilters.location.longitude.toString(),)
     }
@@ -142,7 +146,7 @@ function handleUseLocation() {
       </div>
 
       <div>
-        <label htmlFor="city">City</label>
+        <label htmlFor="city">Search near California city</label>
         <input
           id="city"
           type="text"
