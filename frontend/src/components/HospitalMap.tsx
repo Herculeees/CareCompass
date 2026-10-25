@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import './HospitalMap.css'
 import type { Hospital } from '../types'
 
 type HospitalMapProps = {
@@ -62,13 +63,19 @@ export default function HospitalMap({ hospitals, comparison, onAddToComparison }
       }
 
       const popup = document.createElement('div')
+      popup.className = 'hospital-popup'
       const name = document.createElement('strong')
       name.textContent = hospital.name
       const details = document.createElement('details')
       const summary = document.createElement('summary')
       summary.textContent = 'View details'
-      const address = document.createElement('p')
-      address.textContent = [hospital.address, hospital.city].filter(Boolean).join(', ') || 'Address unavailable'
+      const address = document.createElement('a')
+      address.textContent = [hospital.address, hospital.city].filter(Boolean).join(', ') || 'Find on Google Maps'
+      const mapsQuery = [hospital.name, hospital.address, hospital.city, 'CA'].filter(Boolean).join(', ')
+      address.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapsQuery)}`
+      address.target = '_blank'
+      address.rel = 'noopener noreferrer'
+      address.className = 'hospital-popup-address'
       const rating = document.createElement('p')
       rating.textContent = `CMS overall rating: ${hospital.overall_rating === null ? 'Not available' : `${hospital.overall_rating} / 5`}`
       const emergency = document.createElement('p')
@@ -84,7 +91,7 @@ export default function HospitalMap({ hospitals, comparison, onAddToComparison }
       details.append(summary, address, rating, emergency)
       if (hospital.distance_miles !== null) {
         const distance = document.createElement('p')
-        distance.textContent = `${hospital.distance_miles.toFixed(1)} miles (straight-line distance from search location)`
+        distance.textContent = `${hospital.distance_miles.toFixed(1)} mi from search location (straight-line)`
         details.append(distance)
       }
       details.append(compareButton)
@@ -97,7 +104,14 @@ export default function HospitalMap({ hospitals, comparison, onAddToComparison }
         fillOpacity: 0.85,
         weight: 2,
       })
-        .bindPopup(popup, { autoPan: false, maxHeight: 260 })
+        .bindPopup(popup, {
+          minWidth: 180,
+          maxWidth: 250,
+          maxHeight: 220,
+          autoPan: true,
+          keepInView: true,
+          autoPanPadding: [16, 16],
+        })
         .addTo(markers)
       details.addEventListener('toggle', () => marker.getPopup()?.update())
     }
@@ -131,7 +145,7 @@ export default function HospitalMap({ hospitals, comparison, onAddToComparison }
     <div
       data-hospital-count={hospitals.length}
       ref={containerRef}
-      style={{ height: '400px', width: '100%' }}
+      className="hospital-map"
       aria-label="Hospital map"
     />
   )

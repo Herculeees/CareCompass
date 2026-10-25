@@ -1,0 +1,40 @@
+.hospital-map {
+  width: 100%;
+  height: clamp(480px, 65vh, 680px);
+}
+
+.hospital-map .leaflet-popup-content {
+  margin: 10px 12px;
+  line-height: 1.35;
+}
+
+.hospital-popup {
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.hospital-popup strong {
+  display: block;
+  margin-bottom: 5px;
+  line-height: 1.25;
+}
+
+.hospital-popup summary {
+  cursor: pointer;
+  padding: 3px 0;
+}
+
+.hospital-popup p {
+  margin: 5px 0;
+}
+
+.hospital-popup-address {
+  display: block;
+  margin: 5px 0;
+}
+
+.hospital-popup button {
+  margin-top: 6px;
+  padding: 5px 8px;
+  font-size: 12px;
+}

@@ -1,244 +1,115 @@
-# CareCompass
+# CareCompass v1.0
 
-CareCompass is an in-progress California hospital discovery and comparison project. The first release will help users find hospitals and compare distance, published CMS overall quality ratings, emergency-services status, and hospital type.
+CareCompass is a California hospital discovery and comparison project. Search near a city, ZIP code, or browser location, explore hospital locations on a map, and compare published quality information.
 
-## Data coverage
+**Status:** Local MVP. Styling, layout, and usability refinements are still in progress. Public deployment is pending; the v1.0 label identifies this development milestone, not a production-readiness certification.
 
-CareCompass combines **377 California CMS provider records** with **64 additional California hospital locations**, including rehabilitation, cancer, surgical, and other specialty hospitals. The directory offers **320 searchable locations** with coordinates, including UCI Health-Irvine on Jamboree Road. Provider records and physical locations are different units; these counts do not represent 441 distinct searchable hospitals.
+## What you can do
+
+- Find hospitals near a California city or US ZIP code, or use browser location.
+- Filter by hospital name and reported emergency services.
+- Explore map and list results, expand hospital details inside map popups, and open linked addresses in Google Maps.
+- Add up to three hospitals to a comparison from the map or list.
+- View CMS overall ratings separately from seven selected 2023 HCAI outcomes.
+
+Search location priority is **ZIP → city → browser location**. The interface currently displays up to **20 hospitals per search**; the map represents those results rather than the entire directory. City and ZIP coordinates are estimates, and distances are straight-line estimates rather than driving distances. Comparison selections are kept in memory and reset when the page reloads.
+
+## Screenshots
+
+Development screenshots show the current functionality; styling and layout are still in progress. Visible ratings and service flags are snapshot data, not endorsements or confirmation of current availability.
+
+### Search and map details
+
+Search near ZIP 92617 and expand a hospital popup to see its linked address, available CMS rating, emergency-service status, estimated distance, and comparison button. ZIP input takes priority over the browser coordinates also visible in this example.
+
+![ZIP-based hospital search with an expanded map popup and linked address](assets/screenshots/map-search.png)
+
+<details>
+<summary>Hospital list with available and missing information</summary>
+
+Results show straight-line distances, Google Maps links, and expandable HCAI information. Unavailable CMS ratings and unknown emergency-service status remain explicit; neither establishes poor quality or the absence of an emergency department.
+
+![Hospital results showing distances, CMS ratings, emergency status, and advanced comparison controls](assets/screenshots/hospital-results.png)
+
+</details>
+
+<details>
+<summary>Side-by-side comparison of three hospitals</summary>
+
+CMS overall ratings appear separately from selected HCAI outcomes and reported case counts. This example includes missing results to illustrate the limits of comparison; a missing value is not a zero rating.
+
+![Three-hospital comparison with separate CMS ratings and selected 2023 HCAI outcomes, including unavailable results](assets/screenshots/hospital-comparison.png)
+
+</details>
+
+## Current data coverage
+
+Verified against the local database on **October 25, 2026**. These figures describe this project's imported snapshot, not all hospitals in California or nationwide.
 
 | Coverage | Count |
 | --- | ---: |
-| California CMS provider records | 377 |
-| Additional California hospital locations | 64 |
-| Searchable locations with coordinates | **320** |
+| California CMS provider records retained | 377 |
+| Additional California hospital location records | 64 |
+| Searchable hospital locations | **320** |
+| Searchable locations with a CMS overall rating | 189 / 320 (59.1%) |
+| Searchable locations without a CMS overall rating | 131 / 320 (40.9%) |
+| Locations with at least one selected HCAI outcome rating | 221 / 320 (69.1%) |
+| Locations with all seven selected HCAI outcome ratings | 74 / 320 (23.1%) |
+| Locations with CMS overall or selected HCAI rating information | 224 / 320 (70.0%) |
+| Reported emergency services: yes / no / unknown | 194 / 63 / 63 |
 
-**\* Coverage and data limitations:** Records without usable location coordinates remain outside search; 121 CMS provider records are retained in the database for location resolution. Duplicates and alternate buildings are reconciled to avoid presenting them as separate hospital results. Clinics, pharmacies, and skilled nursing facilities are outside the hospital directory's scope. Missing CMS ratings are displayed as unavailable and are not copied from another campus. Public records and source coordinates may be incomplete or outdated, and inclusion does not independently verify a facility's location, services, or current availability. Confirm relevant details directly with the facility. Reported emergency services do not indicate live capacity or wait times.
+**Provider records and physical hospital locations are different units.** The 377 CMS records plus 64 additional locations do not represent 441 distinct searchable hospitals. Unresolved coordinates, campus relationships, duplicates, and scope decisions affect which records appear in search.
 
-## Planned first release
+### Hospital scope and source differences
 
-- California hospital search by city, ZIP code, or browser location.
-- Map and list views, with distance where verified coordinates are available.
-- Side-by-side comparison of up to three hospitals.
-- An emergency-services filter and links to Google Maps for directions.
-- Explicit handling of missing data and unresolved location matches.
+The directory includes general hospitals and selected specialty hospitals, including rehabilitation, cancer, and surgical facilities. It is **not a comprehensive directory** of hospitals or specialty care. Clinics, family doctors, dental practices, pharmacies, and skilled nursing facilities are outside the current directory's scope.
 
-Accounts, saved facilities, clinics, insurance, cost estimates, and AI ranking are outside the first release.
+CMS is a national provider dataset; the California facility listing uses state facility and location records. Their identifiers, names, addresses, reporting periods, and campus structures do not always align. Some California locations have no matching CMS provider ID or rating, and one provider record does not necessarily describe every campus separately. An unmatched record does not, by itself, mean a hospital is missing from all national data.
 
-## Proposed technology stack
+Original provider data is retained separately from location selections. Missing ratings are not invented or copied from another campus. Unresolved or conflicting matches can leave locations outside search or cause performance results to be withheld.
 
-Python/FastAPI, React/TypeScript, and PostgreSQL, with Docker, GitHub Actions, and an AWS deployment planned. Deployment details and the map provider remain to be decided.
+### Ratings and emergency-service limitations
 
-## Project layout
+- **CMS:** Overall-rating coverage is incomplete. An unavailable rating is not zero stars and does not establish poor quality.
+- **HCAI:** Only seven selected outcomes from source year 2023 are included: heart attack, heart failure, pneumonia, hip fracture, gastrointestinal bleeding, isolated CABG mortality, and adult postoperative sepsis. These are not comprehensive performance or specialty ratings. Historical results do not establish current performance; some locations and measures have no verified result.
+- **Separate measures:** CMS overall ratings and HCAI outcome categories are different measures. The combined 70.0% information-coverage figure is not overall-rating coverage or a combined quality score.
+- **Emergency services:** The flag is reported source information, with incomplete coverage. Unknown does not mean no emergency department. The emergency-only filter includes only records marked yes, so it can omit facilities whose status is unknown. No live opening status, capacity, wait times, or service availability is provided.
 
-```text
-CareCompass/
-├── scripts/                 # Python data utilities and CMS import
-│   ├── inspect_hospital.py
-│   ├── generate_issue_report.py
-│   ├── check_database.py
-│   └── import_hospitals.py   # Original CMS import; dry run by default, --write inserts
-├── database/
-│   └── schema.sql           # Initial PostgreSQL table definition
-├── data/
-│   └── raw/                 # Original downloaded CSVs; ignored by Git
-├── reports/                 # Baseline review CSV and generated issue reports
-├── docs/                    # Local-only journal and diagrams; ignored by Git
-├── .venv/                   # Local Python environment; ignored by Git
-├── .env                     # Local password; ignored by Git
-├── .env.example             # Shareable environment template
-├── .gitignore
-├── compose.yaml             # Local PostgreSQL container configuration
-├── requirements.txt
-└── README.md
-```
+## Disclaimer
 
-Run the commands below from the project root, `D:\CareCompass`. The inspection and issue-report scripts locate `data/raw/` relative to the project, rather than the terminal's current directory. Moving source files does not alter the Docker database or its volume.
+CareCompass is an informational project, **not medical advice, an emergency-response service, or a recommendation of a particular hospital**. Do not rely on it to decide where to obtain emergency care. Data may be incomplete, outdated, or associated with an unresolved provider/campus relationship. Inclusion does not independently verify a facility's location or services. Confirm addresses, services, and other relevant details directly with the facility and consult qualified healthcare professionals for care decisions.
 
-## Local PostgreSQL setup
+## Technology
 
-The search API requires a populated `hospital_search` view combining provider and location records. The schema/import commands below provision the CMS provider table only; complete directory initialization is not included in these scripts.
+React, TypeScript, Leaflet/OpenStreetMap, Python/FastAPI, PostgreSQL, Docker for the local database, and pgeocode/GeoNames for postal lookups. AWS and Kubernetes are not part of the current implementation.
 
-Install and start Docker Desktop with Linux containers. From the project directory, copy the environment template on Windows:
+## Run locally (PowerShell)
+
+Requires Python 3.11+, Node.js, Docker Desktop, and the **existing populated CareCompass database**, including the `hospital_search` view and HCAI tables. A fresh clone does not include the source datasets or a fully automated database bootstrap.
+
+From the project root, create `.env` from `.env.example` if it does not exist and set your local database password. Never commit credentials. Changing this file does not change an already initialized database password.
 
 ```powershell
-Copy-Item .env.example .env
-```
-
-Do this only if `.env` does not already exist. Set your own local `POSTGRES_PASSWORD` in `.env`; never commit that file or share its contents. Then start PostgreSQL and verify SQL execution inside the container:
-
-```powershell
-docker compose up -d
-docker compose exec db psql -U carecompass -d carecompass -c "SELECT 1;"
-```
-
-PostgreSQL 17 is published at `127.0.0.1:5432` and stores data in the named `postgres_data` volume. The database and initial user are both named `carecompass`. This initial user has administrative privileges; it is for local setup, not a production application role. Initialization settings apply only to an empty data directory; changing `.env` does not change an existing user's password.
-
-To stop the services while keeping the database volume:
-
-```powershell
-docker compose down
-```
-
-Do not add `--volumes` unless you intend to delete the stored database data. The hospital table has been created and the initial California hospital records imported locally. A fresh database still requires the schema and import steps below. Generated diagrams and the project journal stay local and are excluded from Git.
-
-### Create the hospital table
-
-For a new database, apply the schema once:
-
-```powershell
-docker compose cp database/schema.sql db:/tmp/schema.sql
-docker compose exec db psql -U carecompass -d carecompass -v ON_ERROR_STOP=1 -f /tmp/schema.sql
-```
-
-Inspect the resulting table:
-
-```powershell
-docker compose exec db psql -U carecompass -d carecompass -P pager=off -c "\d hospitals"
-```
-
-If the table already exists, do not rerun the creation script or delete the table. This script is the initial schema, not a migration system.
-
-### Verify Python database connectivity
-
-Create the project environment if `.venv` does not already exist, then install its dependencies:
-
-```powershell
-py -m venv .venv
+py -m venv .venv # Only if .venv does not exist
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
-.\.venv\Scripts\python.exe scripts/check_database.py
+docker compose up -d
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
 ```
 
-The check prompts for the password configured when PostgreSQL was initialized, without displaying it or storing it in code. It connects to `127.0.0.1:5432` and executes `SELECT 1;`. Expected output: `Database returned: 1`. It does not automatically read `.env`, modify the schema, or insert hospital records. Keep Docker Desktop and the database container running during the check.
-
-## Database schema
-
-The retained initial schema defines `hospitals`, with one row per CMS provider, in [database/schema.sql](database/schema.sql). The following tables document that original table. The expanded local database also contains `california_hospital_locations`, campus-selection/exclusion tables, and the `hospital_search` view described above; these are not created by the retained initial schema. Original CMS location fields remain separate from selected California locations so the source of each value can be traced.
-
-### Hospital identity and original CMS location
-
-| Column | PostgreSQL type | Required? | Description |
-| --- | --- | --- | --- |
-| `cms_facility_id` | `TEXT` | Yes; primary key | Unique CMS hospital identifier. Preserve leading zeros. |
-| `name` | `TEXT` | Yes | Hospital name from CMS. |
-| `hospital_type` | `TEXT` | No | Hospital category reported by CMS. |
-| `phone` | `TEXT` | No | Contact phone number; preserve formatting. |
-| `cms_address` | `TEXT` | No | Original CMS street address. |
-| `cms_city` | `TEXT` | No | City from CMS. |
-| `cms_state` | `TEXT` | Yes | State abbreviation; `CA` for the initial import. |
-| `cms_zip` | `TEXT` | No | Original CMS ZIP code; preserve leading zeros. |
-
-### Quality and emergency services
-
-| Column | PostgreSQL type | Required? | Description |
-| --- | --- | --- | --- |
-| `overall_rating` | `SMALLINT` | No | CMS overall hospital rating, restricted to 1–5 when present. |
-| `rating_footnote` | `TEXT` | No | Source footnote explaining the rating or its absence; interpret codes using the CMS data dictionary. |
-| `emergency_services` | `BOOLEAN` | No | Reported emergency-services indicator: `TRUE`, `FALSE`, or `NULL` when unknown. Does not indicate live capacity or wait times. |
-
-### Selected California location and import metadata
-
-| Column | PostgreSQL type | Required? | Description |
-| --- | --- | --- | --- |
-| `california_facid` | `TEXT` | No | Identifier of the selected California facility record; a source ID, not a foreign key in this single-table design. |
-| `california_address` | `TEXT` | No | Original street address of the selected California record. |
-| `california_city` | `TEXT` | No | City of the selected California record. |
-| `california_zip` | `TEXT` | No | ZIP code of the selected California record. |
-| `latitude` | `DOUBLE PRECISION` | No | Latitude from the selected record; range −90 to 90. |
-| `longitude` | `DOUBLE PRECISION` | No | Longitude from the selected record; range −180 to 180. |
-| `location_match_status` | `TEXT` | Yes | Matching/review status, restricted to the values below. |
-| `california_data_date` | `DATE` | No | Selected California record's `DATA_DATE`; source extraction date, not import time. |
-| `imported_at` | `TIMESTAMPTZ` | Yes | Time the hospital record was imported into PostgreSQL. |
-
-**\* Location review:** Ambiguous address, ZIP, or campus relationships require review. Original provider records remain preserved, while campus selections are stored separately. A single text-matching candidate does not independently verify a physical location.
-
-### Location match statuses
-
-| Value | Meaning |
-| --- | --- |
-| `single_candidate` | Exactly one same-ID candidate matches the normalized street address and five-digit ZIP. Coordinates still require basic validation before use. |
-| `review_required` | Matching IDs have multiple address-and-ZIP candidates or conflicting address/ZIP information. |
-| `no_id_match` | No exact California CCN match was found for the CMS facility ID. |
-| `review_approved` | A reviewer approved a particular California facility record. The verification evidence stays in the review record. |
-
-Missing values use SQL `NULL`, not zero or the text `N/A`. Latitude and longitude must either both be present or both be `NULL`. Coordinate range checks do not independently verify the correct campus. Hospital quality ratings belong to the CMS provider record and should not be presented as independently measured ratings for every related campus.
-
-## Source data and utilities
-
-Use Python 3.11 or later. No third-party Python packages are required for this exercise.
-
-Download the following source files and place them in `data/raw/`:
-
-| Source | Local filename | Purpose |
-| --- | --- | --- |
-| [CMS Hospital General Information](https://data.cms.gov/provider-data/dataset/xubh-q36u) | `Hospital_General_Information.csv` | Hospital identifiers, addresses, ratings, and emergency-services information |
-| [CDPH Licensed and Certified Healthcare Facility Listing](https://data.ca.gov/@california-department-of-public-health/licensed-and-certified-healthcare-facility-listing) | `health_facility_locations.csv` | Facility records and location coordinates |
-
-The downloaded CSV files are intentionally excluded from Git. Preserve leading zeros in identifiers and ZIP codes. Retain source attribution; the California listing identifies its license as Creative Commons Attribution.
-
-From the project directory on Windows:
+In a second terminal, from the project root:
 
 ```powershell
-py scripts/inspect_hospital.py
+cd frontend
+npm.cmd ci
+npm.cmd run dev
 ```
 
-An optional hospital ID can be supplied without editing the script:
+Open [CareCompass](http://localhost:5173) or [API documentation](http://127.0.0.1:8000/docs). Use the frontend URL printed in the terminal if its port differs. First postal lookup downloads data; subsequent lookups use a local cache that must also be provisioned for deployment.
 
-```powershell
-py scripts/inspect_hospital.py 050007
-```
+## Sources and attribution
 
-Examples in the current local snapshots: `050002` has one candidate, `050007` has multiple candidates, and `050551` has no exact CCN candidate. `NOT-A-REAL-ID` demonstrates the hospital-not-found message. Candidates are not verified coordinate matches, even when only one is returned.
-
-On systems with Python available as `python3`:
-
-```sh
-python3 scripts/inspect_hospital.py
-```
-
-### Preview and import California hospital records
-
-```powershell
-.\.venv\Scripts\python.exe scripts/import_hospitals.py
-```
-
-The current script reads the CMS file, filters to California, and previews hospital IDs, names, parsed ratings, and emergency-services flags. It validates these conversions across all 377 California records: 98 ratings are unavailable, 284 hospitals report emergency services, and 93 report no emergency services. Missing ratings become Python `None`, while Yes/No values become Boolean values; unexpected inputs raise errors.
-
-California location candidates are read once and grouped by CCN. Address-and-ZIP matching reuses the issue-report rules, preserving multiple candidates for review. The script demonstrates two same-ID candidates for `050007` and one address-and-ZIP candidate for the first CMS record, `050002`.
-
-`parse_coordinates()` rejects missing, nonnumeric, nonfinite, out-of-range values and the pair `(0, 0)`. These checks validate numeric plausibility, not the correct campus or a position within California. `prepare_hospital()` creates a dictionary containing converted CMS fields and, only for a single address-and-ZIP candidate with valid numeric coordinates, the selected California location. Unresolved location fields remain `None`, with `review_required` or `no_id_match` status. The script prints the first prepared hospital for inspection.
-
-`parse_source_date()` interprets source dates in month/day/year format and stores the selected location's extraction date in `california_data_date`. PostgreSQL supplies `imported_at`. Without `--write`, the script prints the prepared-record summary and exits without connecting to PostgreSQL or changing data.
-
-To insert the prepared records, explicitly enable writes:
-
-```powershell
-.\.venv\Scripts\python.exe scripts/import_hospitals.py --write
-```
-
-Enter the database password when prompted. Values are passed as named Psycopg parameters. All inserts run within one transaction: successful completion commits, while an exception rolls back the transaction. Existing CMS IDs are skipped using `ON CONFLICT (cms_facility_id) DO NOTHING`; rerunning does not overwrite existing records or apply source updates. This is an initial insert workflow, not a synchronization mechanism.
-
-For an empty table, the current snapshot inserts 377 rows. After a successful complete import, a repeat run should insert 0 and skip 377. Verify the stored totals with read-only SQL:
-
-```powershell
-docker compose exec db psql -U carecompass -d carecompass -c "SELECT location_match_status, COUNT(*) FROM hospitals GROUP BY location_match_status;"
-```
-
-Verified local counts: 377 rows with distinct CMS IDs, 254 coordinate pairs, and 98 missing ratings. Location statuses are 254 `single_candidate`, 100 `review_required`, and 23 `no_id_match`. Coordinate presence does not independently establish correct campus selection. If authentication fails, the connection has not started an import; use `scripts/check_database.py` to check the password. Changing `.env` does not change an initialized database user's password.
-
-## Matching and interpretation
-
-CMS `Facility ID` is matched against California `CCN`, followed by address verification. Multiple candidate locations and unmatched identifiers need review; the current exercise does not implement a general matching pipeline.
-
-Initial inspection of the downloaded snapshots found 377 California CMS hospital records, of which 354 had exact identifier matches in the California file. Of those, 97 had multiple candidate records. These counts describe identifier coverage, not validated coordinate accuracy, and may change with source updates.
-
-Missing ratings are not zero. Distances will be labeled as straight-line estimates. Reported emergency services do not establish current opening status, capacity, or wait times. Overall hospital ratings are not specialty-specific ratings.
-
-### Generate a CMS location issue report
-
-Run the issue-report generator with the original CSV files available locally:
-
-```powershell
-py scripts/generate_issue_report.py
-```
-
-Each run creates a timestamped CSV in `reports/`, excluding single address-and-ZIP matches. The [baseline issue report](reports/hospital-issues-baseline.csv) provides source-level review candidates; it does not incorporate campus selections or supplemental imports and is not a current search-eligibility list. Original source files remain unchanged. Timestamped reports are excluded from Git.
+- [CMS Hospital General Information](https://data.cms.gov/provider-data/dataset/xubh-q36u): provider identity, overall ratings, and emergency-service indicators.
+- [California licensed and certified facility listing](https://data.ca.gov/@california-department-of-public-health/licensed-and-certified-healthcare-facility-listing): state facility/location records; Creative Commons Attribution.
+- [HCAI Hospital Performance Ratings](https://hcai.ca.gov/visualizations/hospital-performance-ratings-summary-report/): selected 2023 outcomes.
+- [GeoNames postal data](https://download.geonames.org/export/zip/): estimated postal coordinates, accessed through pgeocode; CC BY attribution.
+- [OpenStreetMap contributors](https://www.openstreetmap.org/copyright): map data and attribution. Public tile service availability is subject to its usage policy.
