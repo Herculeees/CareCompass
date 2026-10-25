@@ -205,7 +205,7 @@ function handleUseLocation() {
 
       {!loading && !error && (
         <>
-          <HospitalMap />
+          <HospitalMap hospitals={hospitals} />
           <ul>
           {hospitals.map((hospital) => (
             <li key={hospital.location_id}>
