@@ -38,3 +38,78 @@
   padding: 5px 8px;
   font-size: 12px;
 }
+
+.hospital-pin-wrapper {
+  background: transparent;
+  border: 0;
+}
+
+.hospital-pin {
+  display: flex;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  background: #236b3a;
+  border: 2px solid white;
+  border-radius: 50% 50% 50% 0;
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  transform: rotate(-45deg);
+}
+
+.hospital-pin > span {
+  transform: rotate(45deg);
+}
+
+/* Give the popup a softer look that complements the hospital cards. */
+.hospital-map .leaflet-popup-content-wrapper,
+.hospital-map .leaflet-popup-tip {
+  background: #e8f4eb;
+  color: #173b23;
+}
+
+.hospital-map .leaflet-popup-content-wrapper {
+  border: 1px solid #a9ceb2;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(35, 107, 58, 0.25);
+}
+
+.hospital-popup strong {
+  color: #174f2a;
+  font-size: 14px;
+}
+
+.hospital-popup summary {
+  color: #174f2a;
+  font-weight: 600;
+}
+
+.hospital-popup a {
+  color: #205d35;
+}
+
+.hospital-popup button {
+  background: #236b3a;
+  color: white;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.hospital-popup button:hover:not(:disabled) {
+  background: #174f2a;
+}
+
+.hospital-popup button:focus-visible {
+  outline: 3px solid #174f2a;
+  outline-offset: 2px;
+}
+
+.hospital-popup button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

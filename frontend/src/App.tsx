@@ -3,6 +3,7 @@ import type { Hospital } from './types'
 import HospitalPerformance from './components/HospitalPerformance'
 import HospitalComparison from './components/HospitalComparison'
 import HospitalMap from './components/HospitalMap'
+import careCompassLogo from './assets/carecompass-logo.png'
 
 type UserLocation = {
   latitude: number
@@ -15,6 +16,11 @@ function App() {
   const [error, setError] = useState<string | null>(null)
   const [comparison, setComparison] = useState<Hospital[]>([])
   const [mapSelection, setMapSelection] = useState<{ locationId: string } | null>(null)
+  function toggleMapSelection(locationId: string) {
+    setMapSelection((previous) =>
+      previous?.locationId === locationId ? null : { locationId },
+    )
+  }
   const handleAddToComparison = useCallback((hospital: Hospital) => {
     setComparison((previous) => (
       previous.length >= 3 || previous.some((item) => item.location_id === hospital.location_id)
@@ -127,8 +133,11 @@ function handleUseLocation() {
 
   return (
     <main>
-      <h1>CareCompass</h1>
+      <h1 className="site-title">
+        <img src={careCompassLogo} alt="CareCompass" />
+      </h1>
       <p>Find and compare hospitals in California.</p>
+      <div className="search-comparison-layout">
       <HospitalComparison
         hospitals={comparison}
         onRemove={(locationId) => setComparison((previous) => previous.filter((item) => item.location_id !== locationId))}
@@ -188,6 +197,7 @@ function handleUseLocation() {
 
       <button type="submit">Search</button>
     </form>
+    </div>
 
     <div>
     <button type="button" onClick={handleUseLocation} disabled={locating}>
@@ -227,14 +237,14 @@ function handleUseLocation() {
               className={mapSelection?.locationId === hospital.location_id ? 'selected' : ''}
               onClick={(event) => {
                 if ((event.target as HTMLElement).closest('a, button, input, summary, select, textarea')) return
-                setMapSelection({ locationId: hospital.location_id })
+                toggleMapSelection(hospital.location_id)
               }}
             >
               <h2>
                 <button
                   type="button"
                   className="hospital-name-button"
-                  onClick={() => setMapSelection({ locationId: hospital.location_id })}
+                  onClick={() => toggleMapSelection(hospital.location_id)}
                 >
                   {hospital.name}
                 </button>

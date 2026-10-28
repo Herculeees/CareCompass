@@ -15,7 +15,7 @@ export default function HospitalMap({ hospitals, comparison, onAddToComparison, 
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<L.Map | null>(null)
   const compareButtons = useRef(new Map<string, HTMLButtonElement>())
-  const markerRefs = useRef(new Map<string, L.CircleMarker>())
+  const markerRefs = useRef(new Map<string, L.Marker>())
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -51,7 +51,7 @@ export default function HospitalMap({ hospitals, comparison, onAddToComparison, 
     const markerLookup = markerRefs.current
     buttons.clear()
 
-    for (const hospital of hospitals) {
+    for (const [index, hospital] of hospitals.entries()) {
       const { latitude, longitude } = hospital
 
       if (
@@ -100,12 +100,18 @@ export default function HospitalMap({ hospitals, comparison, onAddToComparison, 
       details.append(compareButton)
       popup.append(name, details)
 
-      const marker = L.circleMarker([latitude, longitude], {
-        radius: 8,
-        color: '#075985',
-        fillColor: '#0ea5e9',
-        fillOpacity: 0.85,
-        weight: 2,
+      const pin = L.divIcon({
+        className: 'hospital-pin-wrapper',
+        html: `<span class="hospital-pin"><span>${index + 1}</span></span>`,
+        iconSize: [36, 44],
+        iconAnchor: [18, 44],
+        popupAnchor: [0, -40],
+      })
+
+      const marker = L.marker([latitude, longitude], {
+        icon: pin,
+        title: hospital.name,
+        alt: hospital.name,
       })
         .bindPopup(popup, {
           minWidth: 180,
@@ -147,7 +153,22 @@ export default function HospitalMap({ hospitals, comparison, onAddToComparison, 
   }, [comparison, hospitals, onAddToComparison])
 
   useEffect(() => {
-    if (!mapSelection) return
+    const map = mapRef.current
+    if (!map) return
+
+    if (!mapSelection) {
+      map.closePopup()
+      const markers = Array.from(markerRefs.current.values())
+      if (markers.length > 0) {
+        map.fitBounds(L.featureGroup(markers).getBounds(), {
+          padding: [30, 30],
+          maxZoom: 13,
+        })
+      } else {
+        map.setView([36.7, -119.5], 6)
+      }
+      return
+    }
 
     const marker = markerRefs.current.get(mapSelection.locationId)
     if (!marker) return
@@ -158,6 +179,7 @@ export default function HospitalMap({ hospitals, comparison, onAddToComparison, 
       if (details) details.open = true
     }
 
+    map.setView(marker.getLatLng(), 14)
     marker.openPopup()
     marker.getPopup()?.update()
   }, [mapSelection])

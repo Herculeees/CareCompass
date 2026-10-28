@@ -239,3 +239,181 @@ main > h1 + p {
   outline: 3px solid #174f2a;
   outline-offset: 2px;
 }
+
+/* Search form */
+.search-form {
+  box-sizing: border-box;
+  padding: 1.25rem;
+  background: rgba(145, 205, 162, 0.3);
+  border: 1px solid #a9ceb2;
+  border-radius: 12px;
+  text-align: left;
+}
+
+.search-form > div {
+  margin-bottom: 0.75rem;
+}
+
+.search-form label {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.search-form input[type="text"] {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.55rem;
+  border: 1px solid #a9ceb2;
+  border-radius: 6px;
+}
+
+.search-form button,
+.comparison-section button {
+  padding: 0.6rem 1rem;
+  background: #236b3a;
+  color: white;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.search-form button:hover,
+.comparison-section button:hover {
+  background: #174f2a;
+}
+
+.search-form button:focus-visible,
+.comparison-section button:focus-visible,
+.search-form input:focus-visible {
+  outline: 3px solid #174f2a;
+  outline-offset: 2px;
+}
+
+/* Comparison section */
+.comparison-section {
+  margin: 1rem;
+  padding: 1.25rem;
+  background: rgba(145, 205, 162, 0.3);
+  border: 1px solid #a9ceb2;
+  border-radius: 12px;
+  text-align: left;
+}
+
+.comparison-section table {
+  width: 100%;
+  margin-top: 1rem;
+  border-collapse: collapse;
+}
+
+.comparison-section th,
+.comparison-section td {
+  padding: 0.65rem;
+  border: 1px solid #a9ceb2;
+  text-align: left;
+  vertical-align: top;
+}
+
+/* Information about how to interpret the outcomes */
+.information-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+  background: #e8f4eb;
+  border: 1px solid #a9ceb2;
+  border-radius: 8px;
+  color: #173b23;
+  font-size: 0.9rem;
+}
+
+.information-icon {
+  display: inline-flex;
+  flex: 0 0 1.4rem;
+  height: 1.4rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #236b3a;
+  color: white;
+  font-weight: bold;
+}
+
+/* Search on the left; comparison on the right. */
+.search-comparison-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.2fr);
+  grid-template-areas: "search comparison";
+  gap: 1rem;
+  align-items: start;
+  padding: 0 1rem;
+}
+
+.search-comparison-layout .search-form {
+  grid-area: search;
+  width: 100%;
+  margin: 0;
+  padding: 0.85rem;
+  font-size: 0.9rem;
+}
+
+.search-comparison-layout .search-form > div {
+  margin-bottom: 0.5rem;
+}
+
+.search-comparison-layout .search-form input[type="text"] {
+  padding: 0.4rem;
+}
+
+.search-comparison-layout .comparison-section {
+  grid-area: comparison;
+  min-width: 0;
+  max-height: 420px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0.85rem;
+  font-size: 0.85rem;
+}
+
+.search-comparison-layout .comparison-section th,
+.search-comparison-layout .comparison-section td {
+  padding: 0.4rem;
+}
+
+@media (max-width: 768px) {
+  .search-comparison-layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "search"
+      "comparison";
+  }
+}
+
+/* Let the app use the available screen width. */
+#root {
+  width: 100%;
+  max-width: none;
+  border-inline: 0;
+}
+
+main {
+  width: 100%;
+  box-sizing: border-box;
+  padding-inline: clamp(0.5rem, 2vw, 2rem);
+}
+
+.hospital-list {
+  max-height: clamp(480px, 65vh, 680px);
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.site-title {
+  margin: 0;
+}
+
+.site-title img {
+  display: block;
+  width: min(100%, 420px);
+  height: auto;
+}

@@ -12,7 +12,7 @@ export default function HospitalComparison({
   if (hospitals.length === 0) return null
   const measures = hospitals[0].hcai_performance.measures
   return (
-    <section aria-labelledby="comparison-title">
+    <section className="comparison-section" aria-labelledby="comparison-title">
       <h2 id="comparison-title">Compare hospitals ({hospitals.length} of 3)</h2>
       <PerformanceExplanation />
       <div style={{ overflowX: 'auto' }}>

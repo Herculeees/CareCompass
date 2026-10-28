@@ -3,13 +3,16 @@ import { measureText } from '../performanceText'
 
 export function PerformanceExplanation() {
   return (
-    <p>
-      These are selected condition and procedure outcomes, not overall hospital
-      or specialty ratings. Better, As Expected, and Worse describe risk-adjusted
-      performance relative to the state benchmark. As Expected does not mean poor
-      care. Missing results do not indicate poor quality. The year is the source
-      report label; underlying measurement periods can differ.
-    </p>
+    <div className="information-box">
+      <span className="information-icon" aria-hidden="true">i</span>
+      <p>
+        These are selected condition and procedure outcomes, not overall hospital
+        or specialty ratings. Better, As Expected, and Worse describe risk-adjusted
+        performance relative to the state benchmark. As Expected does not mean poor
+        care. Missing results do not indicate poor quality. The year is the source
+        report label; underlying measurement periods can differ.
+      </p>
+    </div>
   )
 }
 
