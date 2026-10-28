@@ -1,22 +1,32 @@
-# CareCompass v1.0
+# CareCompass v2.0
 
 CareCompass is a California hospital discovery and comparison project. Search near a city, ZIP code, or browser location, explore hospital locations on a map, and compare published quality information.
 
-**Status:** Local MVP. Styling, layout, and usability refinements are still in progress. Public deployment is pending; the v1.0 label identifies this development milestone, not a production-readiness certification.
+**Status:** Local MVP. Public deployment is pending; the v2.0 label identifies this development milestone, not a production-readiness certification.
 
 ## What you can do
 
 - Find hospitals near a California city or US ZIP code, or use browser location.
 - Filter by hospital name and reported emergency services.
-- Explore map and list results, expand hospital details inside map popups, and open linked addresses in Google Maps.
+- Browse a scrollable hospital list alongside a map with numbered pins matching the results.
+- Select a hospital card to center the map and open its details; select it again to return to the results view. Open linked addresses in Google Maps.
 - Add up to three hospitals to a comparison from the map or list.
 - View CMS overall ratings separately from seven selected 2023 HCAI outcomes.
+- Use the compact search and comparison panels side by side on wider screens; the layout adapts to smaller screens.
 
 Search location priority is **ZIP → city → browser location**. The interface currently displays up to **20 hospitals per search**; the map represents those results rather than the entire directory. City and ZIP coordinates are estimates, and distances are straight-line estimates rather than driving distances. Comparison selections are kept in memory and reset when the page reloads.
 
 ## Screenshots
 
-Development screenshots show the current functionality; styling and layout are still in progress. Visible ratings and service flags are snapshot data, not endorsements or confirmation of current availability.
+Visible ratings and service flags are snapshot data, not endorsements or confirmation of current availability.
+
+### CareCompass v2.0 overview
+
+Search near Milpitas, select a hospital to center the map and open its details, and add it to the comparison panel.
+
+![CareCompass v2.0 city search with a selected hospital, map popup, and comparison panel](assets/screenshots/v2-overview.png)
+
+The following screenshots show the earlier interface and will be replaced as updated screenshots become available.
 
 ### Search and map details
 
