@@ -8,12 +8,14 @@ type HospitalMapProps = {
   hospitals: Hospital[]
   comparison: Hospital[]
   onAddToComparison: (hospital: Hospital) => void
+  mapSelection: { locationId: string } | null
 }
 
-export default function HospitalMap({ hospitals, comparison, onAddToComparison }: HospitalMapProps) {
+export default function HospitalMap({ hospitals, comparison, onAddToComparison, mapSelection }: HospitalMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<L.Map | null>(null)
   const compareButtons = useRef(new Map<string, HTMLButtonElement>())
+  const markerRefs = useRef(new Map<string, L.CircleMarker>())
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -46,6 +48,7 @@ export default function HospitalMap({ hospitals, comparison, onAddToComparison }
 
     const markers = L.featureGroup().addTo(map)
     const buttons = compareButtons.current
+    const markerLookup = markerRefs.current
     buttons.clear()
 
     for (const hospital of hospitals) {
@@ -113,6 +116,7 @@ export default function HospitalMap({ hospitals, comparison, onAddToComparison }
           autoPanPadding: [16, 16],
         })
         .addTo(markers)
+      markerLookup.set(hospital.location_id, marker)
       details.addEventListener('toggle', () => marker.getPopup()?.update())
     }
 
@@ -128,6 +132,7 @@ export default function HospitalMap({ hospitals, comparison, onAddToComparison }
     return () => {
       markers.remove()
       buttons.clear()
+      markerLookup.clear()
     }
   }, [hospitals, onAddToComparison])
 
@@ -140,6 +145,22 @@ export default function HospitalMap({ hospitals, comparison, onAddToComparison }
         : comparison.length >= 3 ? 'Comparison full (3 of 3)' : 'Add to comparison'
     })
   }, [comparison, hospitals, onAddToComparison])
+
+  useEffect(() => {
+    if (!mapSelection) return
+
+    const marker = markerRefs.current.get(mapSelection.locationId)
+    if (!marker) return
+
+    const popupContent = marker.getPopup()?.getContent()
+    if (popupContent instanceof HTMLElement) {
+      const details = popupContent.querySelector('details')
+      if (details) details.open = true
+    }
+
+    marker.openPopup()
+    marker.getPopup()?.update()
+  }, [mapSelection])
 
   return (
     <div

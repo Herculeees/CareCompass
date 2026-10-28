@@ -14,6 +14,7 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [comparison, setComparison] = useState<Hospital[]>([])
+  const [mapSelection, setMapSelection] = useState<{ locationId: string } | null>(null)
   const handleAddToComparison = useCallback((hospital: Hospital) => {
     setComparison((previous) => (
       previous.length >= 3 || previous.some((item) => item.location_id === hospital.location_id)
@@ -134,10 +135,12 @@ function handleUseLocation() {
       />
 
       <form
+        className="search-form"
         onSubmit={(event) => {
           event.preventDefault()
           setLoading(true)
           setError(null)
+          setMapSelection(null)
           setSearchFilters({ name, city, zipCode, emergencyOnly, location: userLocation})
         }}
       >
@@ -210,16 +213,32 @@ function handleUseLocation() {
       )}
 
       {!loading && !error && (
-        <>
+        <div className="results-layout">
           <HospitalMap
             hospitals={hospitals}
             comparison={comparison}
             onAddToComparison={handleAddToComparison}
+            mapSelection={mapSelection}
           />
-          <ul>
+          <ul className="hospital-list">
           {hospitals.map((hospital) => (
-            <li key={hospital.location_id}>
-              <h2>{hospital.name}</h2>
+            <li
+              key={hospital.location_id}
+              className={mapSelection?.locationId === hospital.location_id ? 'selected' : ''}
+              onClick={(event) => {
+                if ((event.target as HTMLElement).closest('a, button, input, summary, select, textarea')) return
+                setMapSelection({ locationId: hospital.location_id })
+              }}
+            >
+              <h2>
+                <button
+                  type="button"
+                  className="hospital-name-button"
+                  onClick={() => setMapSelection({ locationId: hospital.location_id })}
+                >
+                  {hospital.name}
+                </button>
+              </h2>
               {hospital.distance_miles !== null && (
                 <p>
                   {hospital.distance_miles.toFixed(1)} miles away
@@ -256,7 +275,7 @@ function handleUseLocation() {
             </li>
           ))}
             </ul>
-        </>
+        </div>
       )}
     </main>
   )

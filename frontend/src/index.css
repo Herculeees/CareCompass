@@ -109,3 +109,133 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+/* Keep the search controls together and centered. */
+.search-form {
+  width: min(100% - 2rem, 600px);
+  margin: 2rem auto;
+}
+
+/* Place the hospital list to the left of the map. */
+.results-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas: "list map";
+  gap: 1.5rem;
+  align-items: start;
+  padding: 1rem;
+}
+
+.hospital-list {
+  grid-area: list;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.results-layout .hospital-map {
+  grid-area: map;
+}
+
+@media (max-width: 768px) {
+  .results-layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "map"
+      "list";
+  }
+}
+
+/* Place the title and subtitle at the upper left. */
+main > h1,
+main > h1 + p {
+  text-align: left;
+  padding-inline: 1rem;
+}
+
+/* Number the hospital cards in the order they appear. */
+.hospital-list {
+  counter-reset: hospital;
+}
+
+.hospital-list > li {
+  counter-increment: hospital;
+  background-color: rgba(145, 205, 162, 0.3);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  transition: box-shadow 0.2s ease;
+}
+
+.hospital-list > li:hover {
+  box-shadow: 0 4px 16px rgba(35, 107, 58, 0.55);
+}
+
+.hospital-list > li > h2::before {
+  content: counter(hospital) ". ";
+}
+
+.hospital-list > li > button {
+  background-color: #236b3a;
+  color: white;
+  border: 0;
+  border-radius: 6px;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+}
+
+.hospital-list > li > button:hover:not(:disabled) {
+  background-color: #174f2a;
+}
+
+.hospital-list > li > button:focus-visible {
+  outline: 3px solid #174f2a;
+  outline-offset: 3px;
+}
+
+.hospital-list > li > button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.hospital-name-button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.hospital-name-button:focus-visible {
+  outline: 3px solid #174f2a;
+  outline-offset: 3px;
+}
+
+.hospital-list > li.selected {
+  outline: 3px solid #174f2a;
+  outline-offset: 2px;
+}
+
+.hospital-list > li > details > summary {
+  width: fit-content;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 0.5rem 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #236b3a;
+  border-radius: 6px;
+  color: inherit;
+  cursor: pointer;
+}
+
+.hospital-list > li > details > summary:hover {
+  background-color: rgba(145, 205, 162, 0.4);
+}
+
+.hospital-list > li > details > summary:focus-visible {
+  outline: 3px solid #174f2a;
+  outline-offset: 2px;
+}
